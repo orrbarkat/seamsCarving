@@ -158,9 +158,6 @@ public class ImageProcessing {
                 continue;
             }
             for(j=0; j<imgHeight; j++){
-                if( Double.isNaN(energy[j][i])){
-                    System.out.println("impporsifanf");
-                }
                 weights[i] += energy[j][i];
             }
         }
@@ -177,6 +174,10 @@ public class ImageProcessing {
         for(x=0;x<imgHeight;x++){
             for(y=0; y<imgWidth; y++){
                 sum = 0;
+                if (rgb[x][y][3] == 0){
+                    pmn[x][y] = Double.MIN_NORMAL;
+                    continue;
+                }
                 for(i=-4;i<5; i++){
                     if (x+i<0 || x+i>=imgHeight){ continue;}
                     for(j=-4; j<5;j++) {

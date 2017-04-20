@@ -14,16 +14,16 @@ public class Main {
 
         System.out.println("hello");
 
-        ImageProcessing img = new ImageProcessing(path,true);
+        ImageProcessing img = new ImageProcessing(path,false);
 //        ImageProcessing trans = img.transpose();
 
         System.out.println("done calculating!");
 
         int[][] vertSeam = img.maskFromStraightSeams(100);
 
-        img.removeSeams(vertSeam).saveImage("/Users/orrbarkat/repos/java/seamsCarving/images/straight_seam_2.jpg");
+        img.removeSeams(vertSeam).saveImage("/Users/orrbarkat/repos/java/seamsCarving/images/straight_seam_1.jpg");
         //for vertical seams
-       int[][] seams = img.computeAllOptimalSeams(img.getWidth()-outputNumOfCols);
+       int[][] seams = img.computeAllOptimalSeams(100);
         //for horizontal seams we need to transpose the matrix and then use this function
 //        computeAllOptimalSeams(computeEnergyWithDynamicProg(energy),imgHeight-outputNumOfRows);
         img.removeSeams(seams).saveImage("/Users/orrbarkat/repos/java/seamsCarving/images/general_seam_1.jpg");
