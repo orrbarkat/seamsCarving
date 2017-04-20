@@ -3,16 +3,38 @@ import javax.imageio.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+
 import Jama.*;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.log;
 import static java.lang.Math.max;
+import static java.util.stream.DoubleStream.*;
 
 public class Main {
 
-    public static int[] findStraightSeam(double[][] energy){
-
+    public static int findStraightSeam(double[][] energy){
+        int i,j,w,h;
+        w = energy[0].length;
+        h = energy.length;
+        double temp;
+        double[] weights = new double[w];
+        for(i=0; i<w; i++){
+            temp =0;
+            for(j=0;j<h;j++){
+                temp += energy[j][i];
+            }
+            weights[i] = temp;
+        }
+        i = IntStream.range(0,weights.length)
+                .reduce((a,b) -> weights[a] < weights[b] ? a : b)
+                .getAsInt();
+        System.out.println(i);
+        return i;
     }
 
     public static double[][] computeEntropyHelper(int[][][] rgb) {
@@ -126,11 +148,7 @@ public class Main {
         energia = energia.plusEquals(new Matrix(entropy));
         System.out.println("done calculating!");
 
-
-        for(i=0; i< hight; i++){
-
-        }
-
+        findStraightSeam(energy);
 
     }
 }
