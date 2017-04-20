@@ -63,9 +63,41 @@ public class ImageProcessing {
                 transposed.setRGB(j,i, img.getRGB(i,j));
             }
         }
-        boolean withEntropy =  entropy == null;
-        ImageProcessing res = new ImageProcessing(transposed,withEntropy);
-        return res;
+        return new ImageProcessing(transposed,isEntropy());
+    }
+
+    public ImageProcessing removeSeams(int[][] mask){
+        int i, j, color, index;
+        int excess = IntStream.range(0,imgWidth)
+                .reduce((a,b) -> mask[0][b] > 0 ? a+1 : a)
+                .getAsInt();
+        BufferedImage res = new BufferedImage(imgWidth - excess ,imgHeight, img.getType());
+        for(i=0; i<imgHeight; i++){
+            index = 0;
+            for (j=0; j<imgWidth; j++){
+                if(mask[i][j] > 0){
+                    continue;
+                }
+                color = img.getRGB(j,i);
+                res.setRGB(index,i,color);
+                index++;
+            }
+        }
+        return new ImageProcessing(res,isEntropy());
+    }
+
+    public int[][] maskFromStraightSeams(int excess){
+        int i, j, col;
+        assert excess >= imgWidth;
+        int[][] mask = new int[imgHeight][imgWidth];
+        for(i=0; i<excess; i++){
+            col = findStraightSeam();
+            for(j=0; j<imgHeight; j++){
+                energy[j][col] = Double.MAX_VALUE;
+                mask[j][col] = i;
+            }
+        }
+        return mask;
     }
 
     private void setRgb(){
@@ -109,12 +141,8 @@ public class ImageProcessing {
             for(j=-1; j<2;j++){
                 if ( y+j>=w || y+j<0 || (i==0 && j==0) ) { continue;}
                 for(k=0;k<3;k++){
-                    try{
-                        sum += abs(rgb[x+i][y+j][k] - rgb[x][y][k]);
-                        denominator++;
-                    }catch (IndexOutOfBoundsException e){
-                        System.out.println("error");
-                    }
+                    sum += abs(rgb[x+i][y+j][k] - rgb[x][y][k]);
+                    denominator++;
                 }
             }
         }
@@ -125,7 +153,14 @@ public class ImageProcessing {
         int i,j;
         double[] weights = new double[imgWidth];
         for(i=0; i<imgWidth; i++){
+            if(energy[0][i] == Double.MAX_VALUE){
+                weights[i] = Double.MAX_VALUE;
+                continue;
+            }
             for(j=0; j<imgHeight; j++){
+                if( Double.isNaN(energy[j][i])){
+                    System.out.println("impporsifanf");
+                }
                 weights[i] += energy[j][i];
             }
         }
@@ -169,10 +204,14 @@ public class ImageProcessing {
                         entropy[x][y] -= pmn[x+i][y + j]*log(pmn[x+i][y + j]);
                     }
                 }
+                energy[x][y] += entropy[x][y]/3;
             }
         }
     }
 
+    public boolean isEntropy(){
+        return entropy != null;
+    }
 
     public int[][] computeAllOptimalSeams(int numOfSeams)
     {
@@ -245,14 +284,14 @@ public class ImageProcessing {
         return result;
     }
 
+    public void saveImage(String path){
+        try {
+            File outputfile = new File(path);
+            ImageIO.write(img, "jpg", outputfile);
+        }catch (IOException e) {
+            System.out.println(e);
+            System.exit(1);
+        }
+    }
 
 }
-
-//        try {
-//                File outputfile = new File("/Users/orrbarkat/repos/java/seamsCarving/images/saved.jpg");
-//
-//                ImageIO.write(transposed, "jpg", outputfile);
-//                }catch (IOException e) {
-//                System.out.println(e);
-//                System.exit(1);
-//                }
