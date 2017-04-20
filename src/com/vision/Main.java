@@ -12,7 +12,7 @@ import static java.lang.Math.max;
 public class Main {
 
     public static int[] findStraightSeam(double[][] energy){
-
+     //test
     }
 
     public static double[][] computeEntropyHelper(int[][][] rgb) {
