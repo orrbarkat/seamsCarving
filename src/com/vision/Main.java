@@ -30,11 +30,9 @@ public class Main {
         double temp;
         double[] weights = new double[w];
         for(i=0; i<w; i++){
-            temp =0;
             for(j=0;j<h;j++){
-                temp += energy[j][i];
+                weights[i] += energy[j][i];
             }
-            weights[i] = temp;
         }
         i = IntStream.range(0,weights.length)
                 .reduce((a,b) -> weights[a] < weights[b] ? a : b)
@@ -46,7 +44,6 @@ public class Main {
     public static double[][] computeEntropyHelper(int[][][] rgb) {
         int x,y,i,j,h,w;
         double sum;
-        int denominator;
         h = rgb.length;
         w = rgb[0].length;
         double[][] pmn = new double[h][w];
@@ -107,7 +104,7 @@ public class Main {
                 }
             }
         }
-        return sum/denominator;
+        return (sum != 0.0 ? sum : 0.001)/denominator;
     }
 
     public static int[][] computeAllOptimalSeams(double[][] energy,int numOfSeams)
@@ -181,9 +178,10 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        String path = "C:\\Users\\Oded_navon\\Documents\\GitHub\\Graphics1\\seamsCarving\\images\\halong_bay.jpg";
+        String path = args[1];
         System.out.println("hello");
-//        ImageProcessing img = new ImageProcessing(path);
+        ImageProcessing imgp = new ImageProcessing(path);
+        imgp.transpose();
         BufferedImage img = null;
         try {
             img = ImageIO.read(new File(path));
@@ -193,8 +191,8 @@ public class Main {
             System.exit(1);
         }
 
-        outputNumOfCols = Integer.valueOf(args[1]);
-        outputNumOfRows = Integer.valueOf(args[2]);
+        outputNumOfCols = Integer.valueOf(args[2]);
+        outputNumOfRows = Integer.valueOf(args[3]);
 
         imgWidth = img.getWidth();
         imgHeight = img.getHeight();
@@ -224,16 +222,14 @@ public class Main {
         }
         double[][] entropy = computeEntropy(rgb);
 
-        Matrix energia = new Matrix(energy);
-        energia = energia.plusEquals(new Matrix(entropy));
         System.out.println("done calculating!");
 
-        findStraightSeam(energy);
+        int seam = findStraightSeam(energy);
 
         //for vertical seams
-        computeAllOptimalSeams(computeEnergyWithDynamicProg(energy),imgWidth-outputNumOfCols);
+       int[][] seams = computeAllOptimalSeams(computeEnergyWithDynamicProg(energy),imgWidth-outputNumOfCols);
         //for horizontal seams we need to transpose the matrix and then use this function
-        computeAllOptimalSeams(computeEnergyWithDynamicProg(energy),imgHeight-outputNumOfRows);
+//        computeAllOptimalSeams(computeEnergyWithDynamicProg(energy),imgHeight-outputNumOfRows);
 
     }
 }
