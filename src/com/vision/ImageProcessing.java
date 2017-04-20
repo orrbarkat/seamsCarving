@@ -4,8 +4,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.stream.IntStream;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.log;
 
 /**
  * Created by orrbarkat on 19/04/2017.
@@ -14,11 +16,11 @@ public class ImageProcessing {
     private BufferedImage img = null;
     private int[][][] rgb;
     private double[][] energy;
-    private double[][] entropy;
+    private double[][] entropy = null;
     private int imgWidth;
     private int imgHeight;
 
-    public ImageProcessing(String path){
+    public ImageProcessing(String path, boolean withEntropy){
         try {
             this.img = ImageIO.read(new File(path));
         } catch (IOException e) {
@@ -27,14 +29,18 @@ public class ImageProcessing {
         }
         this.imgHeight = img.getHeight();
         this.imgWidth = img.getWidth();
+        setRgb();
+        setEnergy();
+        if (withEntropy) setEntropy();
     }
 
-    public ImageProcessing(BufferedImage image){
+    public ImageProcessing(BufferedImage image, boolean withEntropy){
         this.img = image;
         this.imgHeight = image.getHeight();
         this.imgWidth = image.getWidth();
         setRgb();
         setEnergy();
+        if (withEntropy) setEntropy();
     }
 
     public ImageProcessing transpose(){
@@ -45,7 +51,8 @@ public class ImageProcessing {
                 transposed.setRGB(j,i, img.getRGB(i,j));
             }
         }
-        ImageProcessing res = new ImageProcessing(transposed);
+        boolean withEntropy =  entropy == null;
+        ImageProcessing res = new ImageProcessing(transposed,withEntropy);
         return res;
     }
 
@@ -79,7 +86,7 @@ public class ImageProcessing {
         }
     }
 
-    public static double computeEnergy(int x,int y, int[][][] rgb){
+    private static double computeEnergy(int x,int y, int[][][] rgb){
         int denominator = 0;
         double sum = 0;
         int i,j,k,h,w;
@@ -102,6 +109,57 @@ public class ImageProcessing {
         return (sum != 0.0 ? sum : 0.001)/denominator;
     }
 
+    public int findStraightSeam(){
+        int i,j;
+        double[] weights = new double[imgWidth];
+        for(i=0; i<imgWidth; i++){
+            for(j=0; j<imgHeight; j++){
+                weights[i] += energy[j][i];
+            }
+        }
+        i = IntStream.range(0,imgWidth)
+                .reduce((a,b) -> weights[a] < weights[b] ? a : b)
+                .getAsInt();
+        return i;
+    }
+
+    private double[][] computeEntropyHelper() {
+        int x,y,i,j;
+        double sum;
+        double[][] pmn = new double[imgHeight][imgWidth];
+        for(x=0;x<imgHeight;x++){
+            for(y=0; y<imgWidth; y++){
+                sum = 0;
+                for(i=-4;i<5; i++){
+                    if (x+i<0 || x+i>=imgHeight){ continue;}
+                    for(j=-4; j<5;j++) {
+                        if (y + j >= imgWidth || y + j < 0) {continue;}
+                        sum += rgb[x+i][y+j][3];
+                    }
+                }
+                pmn[x][y] = (double)rgb[x][y][3] / sum;
+            }
+        }
+        return pmn;
+    }
+
+    public void setEntropy() {
+        int x,y,i,j;
+        double[][] pmn = computeEntropyHelper();
+        entropy = new double[imgHeight][imgWidth];
+        for(x=0;x<imgHeight;x++) {
+            for (y = 0; y < imgWidth; y++) {
+                entropy[x][y] = 0;
+                for(i=-4;i<5; i++){
+                    if (x+i<0 || x+i>=imgHeight){ continue;}
+                    for(j=-4; j<5;j++) {
+                        if (y + j >= imgWidth || y + j < 0) {continue;}
+                        entropy[x][y] -= pmn[x+i][y + j]*log(pmn[x+i][y + j]);
+                    }
+                }
+            }
+        }
+    }
 
 }
 
