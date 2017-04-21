@@ -379,6 +379,7 @@ public class ImageProcessing {
         }catch (IOException e) {
             System.out.println(e);
             System.exit(1);
+
         }
     }
 
