@@ -30,6 +30,7 @@ public class ImageProcessing {
         return imgHeight;
     }
 
+
     public ImageProcessing(String path, boolean withEntropy){
         try {
             this.img = ImageIO.read(new File(path));

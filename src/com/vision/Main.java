@@ -48,7 +48,5 @@ public class Main {
 //        computeAllOptimalSeams(computeEnergyWithDynamicProg(energy),imgHeight-outputNumOfRows);
         img.removeSeams(seams).saveImage("/Users/orrbarkat/repos/java/seamsCarving/images/general_seam_2.jpg");
 
-
-
     }
 }
