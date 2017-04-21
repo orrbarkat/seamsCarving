@@ -213,14 +213,15 @@ public class ImageProcessing {
 
     public int[][] computeAllOptimalSeams(int numOfSeams) {
         int[][] seams = new int[imgHeight][imgWidth];
-        for (int i = 1; i < numOfSeams + 1; i++) {
+        for (int i = 1; i < numOfSeams + 1; i++)
+        {
             energyAfterDynamicProg = computeEnergyWithDynamicProg();
-            seams = computeOptimalSeam(seams, i);
+            seams = computeSingleOptimalSeam(seams, i);
         }
         return seams;
     }
 
-    private int[][] computeOptimalSeam(int[][] seams, int nextSeamIndex) {
+    private int[][] computeSingleOptimalSeam(int[][] seams, int nextSeamIndex) {
         //find minimal pixel in bottom row
         double minVal = Double.MAX_VALUE;
         int minIndex = 0;
@@ -231,6 +232,7 @@ public class ImageProcessing {
         }
 
         seams[imgHeight - 1][minIndex] = nextSeamIndex;
+        energy[imgHeight - 1][minIndex] = Double.MAX_VALUE;
 
         for (int i = imgHeight - 2; i >= 0; i--) {
             //check if one of the 3 pixels above are already taken by another seam
@@ -277,20 +279,21 @@ public class ImageProcessing {
             if (minTopPixel == leftPixel)
             {
                 seams[i][minIndex - 1] = nextSeamIndex;
-                energy[i][minIndex - 1] = Double.MAX_VALUE;
+                energy[i][minIndex-1] = Double.MAX_VALUE;
+
                 minIndex--;
             }
             else if (minTopPixel == rightPixel)
             {
                 seams[i][minIndex + 1] = nextSeamIndex;
-                energy[i][minIndex + 1] = Double.MAX_VALUE;
+                energy[i][minIndex+1] = Double.MAX_VALUE;
+
                 minIndex++;
             }
             else
             {
                 seams[i][minIndex] = nextSeamIndex;
                 energy[i][minIndex] = Double.MAX_VALUE;
-
             }
         }
 

@@ -24,6 +24,10 @@ public class Main {
         //for straight vertical seams
         int[][] vertSeam = img.maskFromStraightSeams(200);
 
+        img.removeSeams(vertSeam).saveImage("c:\\Users\\Oded_navon\\Documents\\GitHub\\Graphics1\\seamsCarving\\images\\straight_seam_1.jpg");
+
+
+        //for vertical seams
         //for general vertical seams
         int[][] seams = img.computeAllOptimalSeams(200);
 
@@ -38,8 +42,10 @@ public class Main {
 
         vertSeam = img.maskFromStraightSeams(200);
 
-        img.removeSeams(vertSeam).saveImage("/Users/orrbarkat/repos/java/seamsCarving/images/straight_seam_1_entropy.jpg");
+        img.removeSeams(vertSeam).saveImage("c:\\Users\\Oded_navon\\Documents\\GitHub\\Graphics1\\seamsCarving\\images\\straight_seam_2.jpg");
 
+
+        //for vertical seams
         seams = img.computeAllOptimalSeams(200);
 
         img.enlargeBySeams(seams,false).saveImage("/Users/orrbarkat/repos/java/seamsCarving/images/orig_1_entropy.jpg");
@@ -50,9 +56,7 @@ public class Main {
 
         //for horizontal seams we need to transpose the matrix and then use this function
 //        computeAllOptimalSeams(computeEnergyWithDynamicProg(energy),imgHeight-outputNumOfRows);
-        img.removeSeams(seams).saveImage("/Users/orrbarkat/repos/java/seamsCarving/images/general_seam_1_entropy.jpg");
-
-
+        img.removeSeams(seams).saveImage("c:\\Users\\Oded_navon\\Documents\\GitHub\\Graphics1\\seamsCarving\\images\\general_seam_2.jpg");
 
     }
 }
