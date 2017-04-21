@@ -4,11 +4,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.stream.IntStream;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.log;
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 
 /**
  * Created by orrbarkat on 19/04/2017.
@@ -68,9 +67,8 @@ public class ImageProcessing {
 
     public ImageProcessing removeSeams(int[][] mask){
         int i, j, color, index;
-        int excess = IntStream.range(0,imgWidth)
-                .reduce((a,b) -> mask[0][b] > 0 ? a+1 : a)
-                .getAsInt();
+        int excess = Arrays.stream(mask[0])
+                .reduce(0,(a,b) -> b > 0 ? a+1 : a);
         BufferedImage res = new BufferedImage(imgWidth - excess ,imgHeight, img.getType());
         for(i=0; i<imgHeight; i++){
             index = 0;
@@ -94,7 +92,7 @@ public class ImageProcessing {
             col = findStraightSeam();
             for(j=0; j<imgHeight; j++){
                 energy[j][col] = Double.MAX_VALUE;
-                mask[j][col] = i;
+                mask[j][col] = i+1;
             }
         }
         return mask;
@@ -161,9 +159,8 @@ public class ImageProcessing {
                 weights[i] += energy[j][i];
             }
         }
-        i = IntStream.range(0,imgWidth)
-                .reduce((a,b) -> weights[a] < weights[b] ? a : b)
-                .getAsInt();
+        i = IntStream.range(0,weights.length)
+                .reduce(0,(a,b) -> weights[a] <= weights[b] ? a : b);
         return i;
     }
 
@@ -293,6 +290,40 @@ public class ImageProcessing {
             System.out.println(e);
             System.exit(1);
         }
+    }
+
+    public ImageProcessing enlargeBySeams(int[][] mask){
+        int i, j, color, index;
+        int seamsToAdd = Arrays.stream(mask[0])
+                .reduce(0,(a,b) -> b > 0 ? a+1 : a);
+        BufferedImage res = new BufferedImage(imgWidth + seamsToAdd ,imgHeight, img.getType());
+        for(i=0; i<imgHeight; i++){
+            index = 0;
+            for (j=0; j<imgWidth; j++){
+                if(mask[i][j] > 0){
+                    color = j==0 ? img.getRGB(j,i) : packRgbToInt(rgb[i][j-1], rgb[i][j]);
+                    res.setRGB(index,i,color);
+                    index++;
+                }
+                if(index>=imgWidth + seamsToAdd){
+                    System.out.println("Asdfa");
+                }
+                color = img.getRGB(j,i);
+                res.setRGB(index,i,color);
+                index++;
+            }
+        }
+        return new ImageProcessing(res,isEntropy());
+    }
+
+    private static int packRgbToInt(int[] rgbLeft, int[] rgbRight){
+        int i;
+        int res = 0xff;
+        for(i=0; i<3; i++){
+            res = res<<8;
+            res += round((rgbLeft[i]+rgbRight[i])/2);
+        }
+        return res;
     }
 
 }
