@@ -212,9 +212,9 @@ public class ImageProcessing {
     }
 
     public int[][] computeAllOptimalSeams(int numOfSeams) {
-        energyAfterDynamicProg = computeEnergyWithDynamicProg();
         int[][] seams = new int[imgHeight][imgWidth];
         for (int i = 1; i < numOfSeams + 1; i++) {
+            energyAfterDynamicProg = computeEnergyWithDynamicProg();
             seams = computeOptimalSeam(seams, i);
         }
         return seams;
@@ -277,16 +277,20 @@ public class ImageProcessing {
             if (minTopPixel == leftPixel)
             {
                 seams[i][minIndex - 1] = nextSeamIndex;
+                energy[i][minIndex - 1] = Double.MAX_VALUE;
                 minIndex--;
             }
             else if (minTopPixel == rightPixel)
             {
                 seams[i][minIndex + 1] = nextSeamIndex;
+                energy[i][minIndex + 1] = Double.MAX_VALUE;
                 minIndex++;
             }
             else
             {
                 seams[i][minIndex] = nextSeamIndex;
+                energy[i][minIndex] = Double.MAX_VALUE;
+
             }
         }
 
@@ -322,7 +326,7 @@ public class ImageProcessing {
         }
     }
 
-    public ImageProcessing enlargeBySeams(int[][] mask){
+    public ImageProcessing enlargeBySeams(int[][] mask, boolean smartMerge){
         int i, j, color, index;
         int seamsToAdd = Arrays.stream(mask[0])
                 .reduce(0,(a,b) -> b > 0 ? a+1 : a);
@@ -331,7 +335,7 @@ public class ImageProcessing {
             index = 0;
             for (j=0; j<imgWidth; j++){
                 if(mask[i][j] > 0){
-                    color = j==0 ? img.getRGB(j,i) : packRgbToInt(rgb[i][j-1], rgb[i][j]);
+                    color =  (smartMerge && j!=0) ? img.getRGB(j,i) : packRgbToInt(rgb[i][j-1], rgb[i][j]);
                     res.setRGB(index,i,color);
                     index++;
                 }
