@@ -211,10 +211,10 @@ public class ImageProcessing {
         return entropy != null;
     }
 
-    public int[][] computeAllOptimalSeams(int numOfSeams) {
+    public int[][] computeAllOptimalSeams(int numOfSeams, boolean forward) {
         int[][] seams = new int[imgHeight][imgWidth];
         for (int i = 1; i < numOfSeams + 1; i++) {
-            energyAfterDynamicProg = computeEnergyWithDynamicProg();
+            energyAfterDynamicProg = forward ? computeFrowardEnergy() : computeEnergyWithDynamicProg();
             seams = computeOptimalSeam(seams, i);
         }
         return seams;
@@ -310,10 +310,63 @@ public class ImageProcessing {
                 result[i][j] = energy[i][j] + min(result[i - 1][j - 1], min(result[i - 1][j], result[i - 1][j + 1]));
             }
             //compute right edge
-            result[i][imgWidth - 1] = energy[i][0] + min(result[i - 1][imgWidth - 1], result[i - 1][imgWidth - 2]);
+            result[i][imgWidth - 1] = energy[i][imgWidth - 1] + min(result[i - 1][imgWidth - 1], result[i - 1][imgWidth - 2]);
 
         }
         return result;
+    }
+
+    private double[][] computeFrowardEnergy(){
+        double[][] result = new double[imgHeight][imgWidth];
+        System.arraycopy(energy[0], 0, result[0], 0, imgWidth);
+
+        for (int i = 1; i < imgHeight; i++)//start from second row, hence start from i=1
+        {
+            //compute the left edge first
+            result[i][0] = energy[i][0] + min(result[i - 1][0] + costUp(i,0), // from top
+                    result[i - 1][1]+costR(i,1));
+            //compute the rest of the row
+            for (int j = 1; j < imgWidth - 1; j++) {
+                result[i][j] = energy[i][j] + min(  result[i - 1][j - 1] + costL(i,j) , // path from left
+                                                    min(result[i - 1][j] + costUp(i,j), // path from top
+                                                            result[i - 1][j + 1] + costR(i,j) // path from right
+                                                    ));
+            }
+            //compute right edge
+            result[i][imgWidth - 1] = energy[i][imgWidth - 1] + min(result[i - 1][imgWidth - 1] + costUp(i,imgWidth - 1),// from top
+                                                         result[i - 1][imgWidth - 2] + costL(i,imgWidth - 1)
+            );
+
+        }
+        return result;
+    }
+
+    private double costUp(int i, int j){
+        double cost = 0;
+        if(j!=0 && j!= imgWidth-1){
+            cost = IntStream.range(0,3)
+                .map((k) -> abs(rgb[i][j-1][k] - rgb[i][j+1][k]))
+                .sum();
+        }
+        return  cost;
+    }
+
+    private double costR(int i, int j){
+        assert j!= imgWidth-1;
+        double cost = costUp(i,j);
+        cost += IntStream.range(0,3)
+                .map((k) -> abs(rgb[i][j-1][k] - rgb[i][j+1][k]))
+                .sum();
+        return  cost;
+    }
+
+    private double costL(int i, int j){
+        assert j!= 0;
+        double cost = costUp(i,j);
+        cost += IntStream.range(0,3)
+                .map((k) -> abs(rgb[i][j-1][k] - rgb[i-1][j][k]))
+                .sum();
+        return  cost;
     }
 
     public void saveImage(String path){
@@ -335,7 +388,7 @@ public class ImageProcessing {
             index = 0;
             for (j=0; j<imgWidth; j++){
                 if(mask[i][j] > 0){
-                    color =  (smartMerge && j!=0) ? img.getRGB(j,i) : packRgbToInt(rgb[i][j-1], rgb[i][j]);
+                    color =  (smartMerge && j!=0) ?  packRgbToInt(rgb[i][j-1], rgb[i][j]) : img.getRGB(j,i);
                     res.setRGB(index,i,color);
                     index++;
                 }
