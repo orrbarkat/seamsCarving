@@ -231,6 +231,7 @@ public class ImageProcessing {
         }
 
         seams[imgHeight - 1][minIndex] = nextSeamIndex;
+        energy[imgHeight - 1][minIndex] = Double.MAX_VALUE;
 
         for (int i = imgHeight - 2; i >= 0; i--) {
             //check if one of the 3 pixels above are already taken by another seam
@@ -277,13 +278,15 @@ public class ImageProcessing {
             if (minTopPixel == leftPixel)
             {
                 seams[i][minIndex - 1] = nextSeamIndex;
-                energy[i][minIndex - 1] = Double.MAX_VALUE;
+                energy[i][minIndex-1] = Double.MAX_VALUE;
+
                 minIndex--;
             }
             else if (minTopPixel == rightPixel)
             {
                 seams[i][minIndex + 1] = nextSeamIndex;
-                energy[i][minIndex + 1] = Double.MAX_VALUE;
+                energy[i][minIndex+1] = Double.MAX_VALUE;
+
                 minIndex++;
             }
             else
