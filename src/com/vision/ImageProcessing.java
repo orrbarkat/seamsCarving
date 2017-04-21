@@ -38,6 +38,7 @@ public class ImageProcessing {
             System.out.println(e);
             System.out.println("error in reading image from: " + path);
         }
+
         this.imgHeight = img.getHeight();
         this.imgWidth = img.getWidth();
         setRgb();
@@ -96,6 +97,12 @@ public class ImageProcessing {
             }
         }
         return mask;
+    }
+
+    public void imageInit()
+    {
+        setRgb();
+        setEnergy();
     }
 
     private void setRgb(){
