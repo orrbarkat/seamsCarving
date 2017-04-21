@@ -9,9 +9,8 @@ import java.util.stream.IntStream;
 
 import static java.lang.Math.*;
 
-/**
- * Created by orrbarkat on 19/04/2017.
- */
+
+
 public class ImageProcessing {
     private BufferedImage img = null;
     private int[][][] rgb;
@@ -211,72 +210,102 @@ public class ImageProcessing {
         return entropy != null;
     }
 
-    public int[][] computeAllOptimalSeams(int numOfSeams)
-    {
+    public int[][] computeAllOptimalSeams(int numOfSeams) {
         energyAfterDynamicProg = computeEnergyWithDynamicProg();
         int[][] seams = new int[imgHeight][imgWidth];
-        for (int i=1 ; i<numOfSeams+1 ; i++)
-        {
-            seams = computeOptimalSeam(seams,i);
+        for (int i = 1; i < numOfSeams + 1; i++) {
+            seams = computeOptimalSeam(seams, i);
         }
         return seams;
     }
 
-    private int[][] computeOptimalSeam(int[][] seams, int nextSeamIndex)
-    {
+    private int[][] computeOptimalSeam(int[][] seams, int nextSeamIndex) {
         //find minimal pixel in bottom row
-        double minVal= Double.MAX_VALUE;
+        double minVal = Double.MAX_VALUE;
         int minIndex = 0;
-        for (int i=0 ; i<imgWidth ; i++)
-        {
-            if (seams[imgHeight-1][i] != 0)continue;
-            minVal = min(minVal,energyAfterDynamicProg[imgHeight-1][i]);
+        for (int i = 0; i < imgWidth; i++) {
+            if (seams[imgHeight - 1][i] != 0) continue;
+            minVal = min(minVal, energyAfterDynamicProg[imgHeight - 1][i]);
             minIndex = (minVal == energyAfterDynamicProg[imgHeight - 1][i]) ? i : minIndex;
         }
 
-        seams[0][minIndex] = nextSeamIndex;
+        seams[imgHeight - 1][minIndex] = nextSeamIndex;
 
-        for (int i=1 ; i<imgHeight ; i++)
-        {
+        for (int i = imgHeight - 2; i >= 0; i--) {
             //check if one of the 3 pixels above are already taken by another seam
-            double leftPixel = seams[i][minIndex-1] == 0 ? energyAfterDynamicProg[i][minIndex-1] : Double.MAX_VALUE;
-            double rightPixel = seams[i][minIndex+1] == 0 ? energyAfterDynamicProg[i][minIndex+1] : Double.MAX_VALUE;
+            double leftPixel=Double.MAX_VALUE,rightPixel=Double.MAX_VALUE;
+            //make sure we're in bounds of the array
+            if (minIndex - 1 >= 0)
+            {
+                leftPixel = seams[i][minIndex - 1] == 0 ? energyAfterDynamicProg[i][minIndex - 1] : Double.MAX_VALUE;
+            }
+            if (minIndex + 1 < imgWidth)
+            {
+                rightPixel = seams[i][minIndex + 1] == 0 ? energyAfterDynamicProg[i][minIndex + 1] : Double.MAX_VALUE;
+            }
             double midPixel = seams[i][minIndex] == 0 ? energyAfterDynamicProg[i][minIndex] : Double.MAX_VALUE;
 
-            double minTopPixel = min(leftPixel,min(rightPixel,midPixel));
+            double minTopPixel = min(leftPixel, min(rightPixel, midPixel));
+            //we're blocked
+            if (minTopPixel == Double.MAX_VALUE)
+            {
+                for (int f=2 ; f<imgWidth ; f++)
+                {
+                    if (minIndex - f >= 0)
+                    {
+                        if (seams[i][minIndex - f] == 0)
+                        {
+                            seams[i][minIndex - f] = nextSeamIndex;
+                            minIndex-=f;
+                            break;
+                        }
+                    }
+                    if (minIndex + f < imgWidth)
+                    {
+                        if (seams[i][minIndex + f] == 0)
+                        {
+                            seams[i][minIndex + f] = nextSeamIndex;
+                            minIndex += f;
+                            break;
+                        }
+                    }
+                }
+                continue;
+            }
 
             if (minTopPixel == leftPixel)
             {
-                seams[i][minIndex-1] = nextSeamIndex;
+                seams[i][minIndex - 1] = nextSeamIndex;
                 minIndex--;
             }
             else if (minTopPixel == rightPixel)
             {
-                seams[i][minIndex+1] = nextSeamIndex;
+                seams[i][minIndex + 1] = nextSeamIndex;
                 minIndex++;
             }
-            else seams[i][minIndex] = nextSeamIndex;
+            else
+            {
+                seams[i][minIndex] = nextSeamIndex;
+            }
         }
 
         return seams;
     }
 
-    private double[][] computeEnergyWithDynamicProg()
-    {
+    private double[][] computeEnergyWithDynamicProg() {
         double[][] result = new double[imgHeight][imgWidth];
-        System.arraycopy(energy[0],0,result[0],0,imgWidth);
+        System.arraycopy(energy[0], 0, result[0], 0, imgWidth);
 
-        for (int i=1 ; i<imgHeight ; i++)//start from second row, hence start from i=1
+        for (int i = 1; i < imgHeight; i++)//start from second row, hence start from i=1
         {
             //compute the left edge first
-            result[i][0] = energy[i][0] + min(result[i-1][0],result[i-1][1]);
+            result[i][0] = energy[i][0] + min(result[i - 1][0], result[i - 1][1]);
             //compute the rest of the row
-            for (int j=1 ; j<imgWidth-1 ; j++)
-            {
-                result[i][j] = energy[i][j] + min(result[i-1][j-1],min(result[i-1][j],result[i-1][j+1]));
+            for (int j = 1; j < imgWidth - 1; j++) {
+                result[i][j] = energy[i][j] + min(result[i - 1][j - 1], min(result[i - 1][j], result[i - 1][j + 1]));
             }
             //compute right edge
-            result[i][imgWidth-1] = energy[i][0] + min(result[i-1][imgWidth-1],result[i-1][imgWidth-2]);
+            result[i][imgWidth - 1] = energy[i][0] + min(result[i - 1][imgWidth - 1], result[i - 1][imgWidth - 2]);
 
         }
         return result;

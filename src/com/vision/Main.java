@@ -31,7 +31,7 @@ public class Main {
 
         //for horizontal seams we need to transpose the matrix and then use this function
 //        computeAllOptimalSeams(computeEnergyWithDynamicProg(energy),imgHeight-outputNumOfRows);
-        img.removeSeams(seams).saveImage("/Users/orrbarkat/repos/java/seamsCarving/images/general_seam_1.jpg");
+        img.removeSeams(seams).saveImage("c:\\Users\\Oded_navon\\Documents\\GitHub\\Graphics1\\seamsCarving\\images\\general_seam_1.jpg");
 
         img = new ImageProcessing(path,true);
 
