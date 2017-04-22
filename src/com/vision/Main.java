@@ -49,38 +49,44 @@ public class Main {
 
     private static void computeHorizontalChange(boolean Forward)
     {
-        if (outputNumOfCols == img.getWidth())return;
         int numOfSeams = abs(outputNumOfCols-img.getWidth());
-        int[][] seams = img.computeAllOptimalSeams(numOfSeams,Forward);
-        //Enlarge image
-        if (outputNumOfCols > img.getWidth())
-        {
-            img = img.enlargeBySeams(seams,true);
-        }
-        //Narrow image
-        else
-        {
-            img = img.removeSeams(seams);
+        int curretResize;
+        while(numOfSeams >0){
+            curretResize = min(numOfSeams,round(img.getWidth()/3));
+            int[][] seams = img.computeAllOptimalSeams(curretResize,Forward);
+            if (outputNumOfCols > img.getWidth())
+            {
+
+                img = img.enlargeBySeams(seams,true);
+            }
+            //Narrow image
+            else
+            {
+                img = img.removeSeams(seams);
+            }
+            numOfSeams-=curretResize;
         }
     }
 
     private static void computeVerticalChange(boolean forward)
     {
-        if (outputNumOfRows == img.getHeight())return;
+        int curretResize;
         int numOfSeams = abs(outputNumOfRows-img.getHeight());
         img = img.transpose();
-        int[][] seams = img.computeAllOptimalSeams(numOfSeams,forward);
-
-        //Enlarge image
-        if (outputNumOfRows > img.getWidth())
-        {
-            img = img.enlargeBySeams(seams,true).transpose();
+        while(numOfSeams >0) {
+            curretResize = min(numOfSeams, round(img.getWidth() / 3));
+            int[][] seams = img.computeAllOptimalSeams(curretResize, forward);
+            //Enlarge image
+            if (outputNumOfRows > img.getWidth()) {
+                img = img.enlargeBySeams(seams, true);
+            }
+            //Narrow image
+            else {
+                img = img.removeSeams(seams);
+            }
+            numOfSeams-=curretResize;
         }
-        //Narrow image
-        else
-        {
-            img = img.removeSeams(seams).transpose();
-        }
+        img = img.transpose();
     }
 
 }
