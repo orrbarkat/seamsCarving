@@ -72,7 +72,7 @@ public class Main {
         int[][] seams = img.computeAllOptimalSeams(numOfSeams,forward);
 
         //Enlarge image
-        if (outputNumOfRows > img.getHeight())
+        if (outputNumOfRows > img.getWidth())
         {
             img = img.enlargeBySeams(seams,true).transpose();
         }
